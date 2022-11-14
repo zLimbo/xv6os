@@ -322,6 +322,8 @@ fork(void)
   np->state = RUNNABLE;
   release(&np->lock);
 
+  np->tracemask = p->tracemask; // FIXME: lock ? 
+
   return pid;
 }
 
