@@ -18,18 +18,18 @@ sinfo(struct sysinfo *info) {
 int
 countfree()
 {
-  uint64 sz0 = (uint64)sbrk(0);
+  uint64 sz0 = (uint64)sbrk(0); // 返回当前的堆区指针位置
   struct sysinfo info;
   int n = 0;
 
   while(1){
-    if((uint64)sbrk(PGSIZE) == 0xffffffffffffffff){
+    if((uint64)sbrk(PGSIZE) == 0xffffffffffffffff){ // 只分配了虚拟内存，所以仅仅只是指针的移动，数字的加减
       break;
     }
     n += PGSIZE;
   }
   sinfo(&info);
-  if (info.freemem != 0) {
+  if (info.freemem != 0) { // 判断是否没有空间可申请了
     printf("FAIL: there is no free mem, but sysinfo.freemem=%d\n",
       info.freemem);
     exit(1);
@@ -41,11 +41,11 @@ countfree()
 void
 testmem() {
   struct sysinfo info;
-  uint64 n = countfree();
+  uint64 n = countfree(); // 用户态统计？
   
   sinfo(&info);
 
-  if (info.freemem!= n) {
+  if (info.freemem!= n) { // 通过调用 sysinfo 和 sbrk 两种方式来比对测试空间申请
     printf("FAIL: free mem %d (bytes) instead of %d\n", info.freemem, n);
     exit(1);
   }
@@ -83,7 +83,8 @@ testcall() {
     printf("FAIL: sysinfo failed\n");
     exit(1);
   }
-
+  // printf("user: nproc:%d, freemem:%d, addr:%d\n", info.nproc, info.freemem, &info);
+  // 非法地址访问？
   if (sysinfo((struct sysinfo *) 0xeaeb0b5b00002f5e) !=  0xffffffffffffffff) {
     printf("FAIL: sysinfo succeeded with bad argument\n");
     exit(1);
@@ -129,7 +130,7 @@ void testbad() {
     exit(1);
   }
   if(pid == 0){
-      sinfo(0x0);
+      sinfo(0x0); // 能够抵御非法地址
       exit(0);
   }
   wait(&xstatus);
